@@ -30,38 +30,41 @@ List listOfCustomers = new ArrayList();
 
 while (payload.hasNext()) {
 Map customer = payload.next();
-//customer.put("lastModifiedDate",org.mule.templates.util.DateUtil.applyTimeZone(customer.get("lastModifiedDate"),"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",'UTC'));
+////customer.put("lastModifiedDate",org.mule.templates.util.DateUtil.applyTimeZone(customer.get("lastModifiedDate"),"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",'UTC'));
 listOfCustomers.add(customer);
 }
-payload=listOfCustomers;]]></expression-component>
- <expression-component doc:name="Build new Account name"><![CDATA[import java.util.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+payload=listOfCustomers;
+for (Map customer : payload){
+	customer.put("lastModifiedDate", customer.get("lastModifiedDate").toString());
+}]]></expression-component>
+ <expression-component doc:name="Build new Account name"><![CDATA[//import java.util.*;
+//import java.text.SimpleDateFormat;
+//import java.util.Date;
+//import java.util.GregorianCalendar;
+//import java.util.TimeZone;
 
-for(Map customer: payload){
-	Object companyName = customer.get("companyName");
+//for(Map customer: payload){
+//	Object companyName = customer.get("companyName");
 
 		//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 		//TimeZone timeZone = TimeZone.getTimeZone("GMT-07:00");
 
 		//formatter.setTimeZone(timeZone);
 
-	customer.put("lastModifiedDate",customer.get("lastModifiedDate").toString()/*formatter.format(customer.get("lastModifiedDate").toGregorianCalendar().getTime())*/);
-	if (companyName==null) {
-		String name="";
-		String firstName = customer.get("firstName");
-		String lastName = customer.get("lastName");
-		name = firstName==null ? "" : firstName;
-		name += name.equals("") ?  (lastName==null ? "" : lastName) : (" " + (lastName==null ? "" : lastName));
-		customer.put("companyName", name);
-	}
-}]]></expression-component>
+//	customer.put("lastModifiedDate",customer.get("lastModifiedDate").toString()/*formatter.format(customer.get("lastModifiedDate").toGregorianCalendar().getTime())*/);
+//	if (companyName==null) {
+//		String name="";
+//		String firstName = customer.get("firstName");
+//		String lastName = customer.get("lastName");
+//		name = firstName==null ? "" : firstName;
+//		name += name.equals("") ?  (lastName==null ? "" : lastName) : (" " + (lastName==null ? "" : lastName));
+//		customer.put("companyName", name);
+//	}
+//}]]></expression-component>
 
 
                 
-                <logger message="#[payload] --------   LASTQUERYDATE: ---- #[flowVars['lastQueryDate']]" level="INFO" doc:name="Logger"/>
+                <logger message="#[payload] --------   LASTQUERYDATE: ---- #[flowVars['lastQueryDate']] ---- #[flowVars['lastQueryDate'].getClass()]" level="INFO" doc:name="Logger"/>
                 
         
             </processor-chain>
