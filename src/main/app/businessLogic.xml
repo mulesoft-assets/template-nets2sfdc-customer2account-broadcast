@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <data-mapper:config name="Account_To_Pojo" transformationGraphPath="account_to_pojo.grf" doc:name="Account_To_Pojo"/>
+
+
+<data-mapper:config name="XML_To_Account" transformationGraphPath="xml_to_account.grf" doc:name="DataMapper"/>
+    <data-mapper:config name="Pojo_To_List_Account_" transformationGraphPath="pojo_to_list_account_.grf" doc:name="Pojo_To_List_Account_"/>
+
+
+
+    <batch:job name="syncCustomerToAccountBatch" max-failed-records="1">
+        <batch:threading-profile poolExhaustedAction="WAIT"/>
+        <batch:process-records>
+            <batch:step name="forEachCustomerInNetsuiteGetAccountFromSalesforceStep">
+                <enricher doc:name="store Salesforce Account in var 'accountInTargetInstance'">
+                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id, Name, LastModifiedDate FROM Account WHERE (Name = '#[payload['companyName']]')" doc:name="Get Account from Salesforce"/>
+                    <enrich source="payload" target="recordVars['accountInTargetInstance']"/>
+                </enricher>
+            </batch:step>
+            <batch:step name="forEachAccountToBeUpsertedInSalesforceA" >
+
+            <data-mapper:transform config-ref="Pojo_To_List_Account_" doc:name="Map Customers to Accounts"/>
+                
+            
+            
+                <expression-component doc:name="Prepare account for upsert"><![CDATA[//thedatamapper will eb changed in final version
+payload = payload.get(0);
+
+
+if(!(recordVars['accountInTargetInstance'] is NullPayload)) {
+	payload.put('Id',recordVars['accountInTargetInstance'].get('Id'));
+}
+payload.remove("LastModifiedDate");]]></expression-component>
+                <logger message="Account for upsert: #[payload]" level="INFO" doc:name="Log Account for upsert"/>
+                <batch:commit size="200" doc:name="Batch Commit">
+                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="Upsert Account in Salesforce">
+                        <sfdc:objects ref="#[payload]"/>
+                    </sfdc:upsert>
+                </batch:commit>
+
+            </batch:step>
+        </batch:process-records>
+        <batch:on-complete>
+            <json:object-to-json-transformer doc:name="Transform BatchJobInstance to JSON"/>
+            <logger message="Migration process has finished: #[payload]" level="INFO" doc:name="Log 'Migration process has finished'"/>
+
+        </batch:on-complete>
+    </batch:job>
+</mule>

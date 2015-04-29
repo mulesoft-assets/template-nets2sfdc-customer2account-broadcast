@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    
+
+	<flow name="triggerFlow" 
+		processingStrategy="synchronous" initialState="started">
+		<poll doc:name="Poll">
+			<fixed-frequency-scheduler frequency="${polling.frequency}"
+				startDelay="1000" />
+			<watermark variable="lastQueryDate" default-expression="${watermark.default.expression}"
+				selector="MAX" selector-expression="#[payload.lastModifiedDate]" />
+            <processor-chain doc:name="Processor Chain">
+                <netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,defaultAddress,fax, internalId, externalId, lastModifiedDate,companyName, firstName, lastName, phone, url FROM CUSTOMER WHERE lastModifiedDate &gt; #[flowVars['lastQueryDate']] ORDER BY lastModifiedDate ASC" doc:name="Fetch Customers from Netsuite"/>
+                <expression-component doc:name="Expression"><![CDATA[import java.util.*;
+
+List listOfCustomers = new ArrayList();
+
+while (payload.hasNext()) {
+Map customer = payload.next();
+//customer.put("lastModifiedDate",org.mule.templates.util.DateUtil.applyTimeZone(customer.get("lastModifiedDate"),"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",'UTC'));
+listOfCustomers.add(customer);
+}
+payload=listOfCustomers;]]></expression-component>
+ <expression-component doc:name="Build new Account name"><![CDATA[import java.util.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
+for(Map customer: payload){
+	Object companyName = customer.get("companyName");
+
+		//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		//TimeZone timeZone = TimeZone.getTimeZone("GMT-07:00");
+
+		//formatter.setTimeZone(timeZone);
+
+	customer.put("lastModifiedDate",customer.get("lastModifiedDate").toString()/*formatter.format(customer.get("lastModifiedDate").toGregorianCalendar().getTime())*/);
+	if (companyName==null) {
+		String name="";
+		String firstName = customer.get("firstName");
+		String lastName = customer.get("lastName");
+		name = firstName==null ? "" : firstName;
+		name += name.equals("") ?  (lastName==null ? "" : lastName) : (" " + (lastName==null ? "" : lastName));
+		customer.put("companyName", name);
+	}
+}]]></expression-component>
+
+
+                
+                <logger message="#[payload] --------   LASTQUERYDATE: ---- #[flowVars['lastQueryDate']]" level="INFO" doc:name="Logger"/>
+                
+        
+            </processor-chain>
+		</poll>
+
+		<batch:execute name="syncCustomerToAccountBatch" doc:name="Trigger syncCustomerToAccountBatch execution" />
+		        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Catch Exception and call defaultChoiceExceptionStrategy"/>
+	</flow>
+
+
+</mule>
