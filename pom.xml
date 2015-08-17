@@ -4,21 +4,21 @@
 	<parent>
 		<groupId>org.mule.templates</groupId>
 		<artifactId>templates-tooling-parent-pom</artifactId>
-		<version>1.1.6</version>
+		<version>1.2.2</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>template-nets2sfdc-account-broadcast</artifactId>
 	<packaging>mule</packaging>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<name>template-nets2sfdc-account-broadcast Mule Anypoint Template Project</name>
 
-	<!-- <scm>
-		<connection>scm:git:https://github.com/mulesoft/template-sfdc2sfdc-account-bidirectional-sync.git</connection>
-		<developerConnection>scm:git:https://github.com/mulesoft/template-sfdc2sfdc-account-bidirectional-sync.git</developerConnection>
-		<url>https://github.com/mulesoft/template-sfdc2sfdc-account-bidirectional-sync</url>
+	<scm>
+		<connection>scm:git:https://github.com/mulesoft/template-nets2sfdc-customer2account-broadcast.git</connection>
+		<developerConnection>scm:git:https://github.com/mulesoft/template-nets2sfdc-customer2account-broadcast.git</developerConnection>
+		<url>https://github.com/mulesoft/template-nets2sfdc-customer2account-broadcast</url>
 	  <tag>HEAD</tag>
-  </scm> -->
+  	</scm>
 
 	<build>
 		<plugins>
@@ -38,37 +38,24 @@
                         </inclusion>
                     </inclusions>
 				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+			</plugin>        
+        </plugins>
+    </build>
 
-	<dependencies>
-		
+	<dependencies>		
 		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-module-sfdc</artifactId>
 			<version>${sfdc.version}</version>
 		</dependency>
-	<dependency>
-            <groupId>org.mule.modules</groupId>
-            <artifactId>mule-module-http</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
-        </dependency>
     <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-netsuite</artifactId>
-            <version>4.1.0</version>
+            <version>${nets.version}</version>
         </dependency>
     <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-spring-config</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    <dependency>
-            <groupId>com.mulesoft.muleesb.modules</groupId>
-            <artifactId>mule-module-data-mapper</artifactId>
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -84,8 +71,14 @@
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
+    <dependency>
+            <groupId>com.mulesoft.weave</groupId>
+            <artifactId>mule-plugin-weave_2.11</artifactId>
+            <version>${mule.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
-
+	
 	<repositories>
 		<repository>
 			<id>mulesoft-releases</id>
@@ -100,11 +93,10 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
-			<id>mule-ee-thirdparty</id>
-			<name>MuleSoft Thirdparty Repository</name>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/thirdparty/</url>
+			<id>mule-ee-releases</id>
+			<name>MuleSoft Releases EE Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases-ee/</url>
 			<layout>default</layout>
-		</repository> 
+		</repository>
 	</repositories>
-
 </project>

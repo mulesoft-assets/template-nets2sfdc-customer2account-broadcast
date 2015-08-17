@@ -5,7 +5,7 @@
 xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore"
 	xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 	xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -19,10 +19,9 @@ http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule
 
 	<context:property-placeholder location="common.properties, mule.${mule.env:test}.properties" />
 	
- <netsuite:config name="Netsuite" doc:name="Netsuite" account="${netsuite.account}" email="${netsuite.email}" password="${netsuite.password}" roleId="${netsuite.roleId}" receiveTimeout="300000"/>
+ 	<netsuite:config-login-authentication name="Netsuite" account="${nets.account}" email="${nets.email}" password="${nets.password}" roleId="${nets.roleId}" receiveTimeout="300000"/>
 
-
-	<sfdc:config name="Salesforce" username="${sfdc.a.username}" password="${sfdc.a.password}" securityToken="${sfdc.a.securityToken}" url="${sfdc.a.url}" doc:name="Salesforce" doc:description="sfdc instance A">
+	<sfdc:config name="Salesforce" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" doc:name="Salesforce" doc:description="sfdc instance">
 		<sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW" />
 	</sfdc:config>
 

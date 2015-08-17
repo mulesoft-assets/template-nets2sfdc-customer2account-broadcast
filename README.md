@@ -5,6 +5,7 @@
 + [Use Case](#usecase)
 + [Considerations](#considerations)
 	* [Salesforce Considerations](#salesforceconsiderations)
+	* [Netsuite Considerations](#netsuiteconsiderations)
 + [Run it!](#runit)
 	* [Running on premise](#runonopremise)
 	* [Running on Studio](#runonstudio)
@@ -77,23 +78,6 @@ In order to have this template working as expected, you should be aware of your 
 [1]: https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US
 [2]: https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US
 
-### As source of data
-
-If the user configured in the template for the source system does not have at least *read only* permissions for the fields that are fetched, then a *InvalidFieldFault* API fault will show up.
-
-```
-java.lang.RuntimeException: [InvalidFieldFault [ApiQueryFault [ApiFault  exceptionCode='INVALID_FIELD'
-exceptionMessage='
-Account.Phone, Account.Rating, Account.RecordTypeId, Account.ShippingCity
-^
-ERROR at Row:1:Column:486
-No such column 'RecordTypeId' on entity 'Account'. If you are attempting to use a custom field, be sure to append the '__c' after the custom field name. Please reference your WSDL or the describe call for the appropriate names.'
-]
-row='1'
-column='486'
-]
-]
-```
 
 ### As destination of data
 
@@ -102,6 +86,11 @@ There are no particular considerations for this Anypoint Template regarding Sale
 
 
 
+## Netsuite Considerations <a name="netsuiteconsiderations"/>
+
+### As source of data
+
+There are no particular considerations for this Anypoint Template regarding Netsuite as data origin.
 
 
 

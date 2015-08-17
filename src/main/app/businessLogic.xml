@@ -1,48 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json" 
+	xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" 
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" 
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	version="EE-3.7.1" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
-    <data-mapper:config name="Account_To_Pojo" transformationGraphPath="account_to_pojo.grf" doc:name="Account_To_Pojo"/>
-
-
-<data-mapper:config name="XML_To_Account" transformationGraphPath="xml_to_account.grf" doc:name="DataMapper"/>
-    <data-mapper:config name="Pojo_To_List_Account_" transformationGraphPath="pojo_to_list_account_.grf" doc:name="Pojo_To_List_Account_"/>
-
-
-
+    
     <batch:job name="syncCustomerToAccountBatch" max-failed-records="1">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:process-records>
             <batch:step name="forEachCustomerInNetsuiteGetAccountFromSalesforceStep">
-                <enricher doc:name="store Salesforce Account in var 'accountInTargetInstance'">
+
+				<dw:transform-message doc:name="Transform Customer to Account">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	AccountNumber : payload.accountNumber,
+	Fax : payload.fax,
+	Phone : payload.phone,
+	Name : payload.companyName when (payload.companyName != null) otherwise (payload.firstName ++ ((" " ++ payload.lastName) when payload.firstName != null otherwise payload.lastName)),
+	Website : payload.url
+	
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <enricher doc:name="store account Id to the payload['Id']" source="#[payload == null ? null : payload.Id]" target="#[payload['Id']]">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id, Name, LastModifiedDate FROM Account WHERE (Name = '#[payload['companyName']]')" doc:name="Get Account from Salesforce"/>
-                    <enrich source="payload" target="recordVars['accountInTargetInstance']"/>
+
                 </enricher>
             </batch:step>
             <batch:step name="forEachAccountToBeUpsertedInSalesforceA" >
 
-            <data-mapper:transform config-ref="Pojo_To_List_Account_" doc:name="Map Customers to Accounts"/>
-                
-            
-            
-                <expression-component doc:name="Prepare account for upsert"><![CDATA[//thedatamapper will eb changed in final version
-payload = payload.get(0);
-
-
-if(!(recordVars['accountInTargetInstance'] is NullPayload)) {
-	payload.put('Id',recordVars['accountInTargetInstance'].get('Id'));
-}
-payload.remove("LastModifiedDate");]]></expression-component>
-                <logger message="Account for upsert: #[payload]" level="INFO" doc:name="Log Account for upsert"/>
                 <batch:commit size="200" doc:name="Batch Commit">
-                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="Upsert Account in Salesforce">
+
+                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="Upsert Accounts in Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
+                    <logger message="Upsert: #[payload]" level="INFO" doc:name="Log upsert result"/>
                 </batch:commit>
 
             </batch:step>
