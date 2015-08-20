@@ -24,34 +24,11 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 		<poll doc:name="Poll">
 			<fixed-frequency-scheduler frequency="${polling.frequency}"
 				startDelay="1000" />
-			<watermark variable="lastQueryDate" default-expression="${watermark.default.expression}"
-				 selector-expression="#[payload.lastModifiedDate]" update-expression="#[flowVars.updatedThrought]"/>
-            <processor-chain doc:name="Processor Chain">
-                <netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,companyName,defaultAddress,externalId,fax,firstName,internalId,lastModifiedDate,lastName,phone,url FROM CUSTOMER WHERE lastModifiedDate &gt; #[flowVars['lastQueryDate']] ORDER BY lastModifiedDate ASC" doc:name="Fetch Customers from Netsuite"/>
-             
-
-<expression-component doc:name="Expression"><![CDATA[import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-
-List customersList = new ArrayList();
-while (payload.hasNext()) {
-	customersList.add(payload.next());
-}
-
-payload = customersList;]]></expression-component>
-                
-                <logger message="#[payload] ------   LASTQUERYDATE: ---- #[flowVars['lastQueryDate']] ---- #[flowVars['lastQueryDate'].getClass()] " level="INFO" doc:name="Logger"/>
-                
-        
-            </processor-chain>
+            <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.lastModifiedDate]"/>
+                <netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,companyName,defaultAddress,externalId,fax,firstName,internalId,lastModifiedDate,lastName,phone,url FROM CUSTOMER WHERE lastModifiedDate &gt; #[groovy:flowVars.lastQueryDate.time.format(&quot;yyyy-MM-dd'T'HH:mm:ss'Z'&quot;, TimeZone.getTimeZone('GMT'))]" doc:name="Fetch Customers from Netsuite"/>
 		</poll>
-        <set-variable variableName="updatedThrought" value="#[payload.get(payload.size()-1).get(&quot;lastModifiedDate&quot;)]" doc:name="Variable"/>
-
-               
-                
-		<batch:execute name="syncCustomerToAccountBatch" doc:name="Trigger syncCustomerToAccountBatch execution" />
-		        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Catch Exception and call defaultChoiceExceptionStrategy"/>
+ 		<batch:execute name="syncCustomerToAccountBatch" doc:name="Trigger syncCustomerToAccountBatch execution" />
+		<exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Catch Exception and call defaultChoiceExceptionStrategy"/>
 	</flow>
 
 
