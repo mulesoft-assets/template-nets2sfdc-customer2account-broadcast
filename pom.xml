@@ -11,7 +11,7 @@
 	<artifactId>template-nets2sfdc-account-broadcast</artifactId>
 	<packaging>mule</packaging>
 	<version>1.2.0-SNAPSHOT</version>
-	<name>template-nets2sfdc-account-broadcast Mule Anypoint Template Project</name>
+	<name>template-nets2sfdc-customer2account-broadcast Mule Anypoint Template Project</name>
 
 	<scm>
 		<connection>scm:git:https://github.com/mulesoft/template-nets2sfdc-customer2account-broadcast.git</connection>
