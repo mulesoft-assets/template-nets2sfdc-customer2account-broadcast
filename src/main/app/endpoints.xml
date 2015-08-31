@@ -29,7 +29,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 				<netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,companyName,defaultAddress,externalId,fax,firstName,internalId,lastModifiedDate,lastName,phone,url FROM CUSTOMER WHERE lastModifiedDate &gt; #[new org.mule.el.datetime.DateTime(flowVars.lastQueryDate)]" doc:name="Fetch Customers from Netsuite"/>
         	</processor-chain>
         </poll>
-        <logger message="Flowvars-lastquery date: #[flowVars.lastQueryDate]" level="INFO" doc:name="Logger"/>
 
  		<batch:execute name="syncCustomersToAccountsBatch" doc:name="Trigger syncCustomersToAccountsBatch execution" />
 		<exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Catch Exception and call defaultChoiceExceptionStrategy"/>
