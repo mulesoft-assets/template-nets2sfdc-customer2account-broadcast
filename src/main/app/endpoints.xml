@@ -21,13 +21,17 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
 	<flow name="triggerFlow" 
 		processingStrategy="synchronous" initialState="started">
-		<poll doc:name="Poll">
-			<fixed-frequency-scheduler frequency="${polling.frequency}"
-				startDelay="1000" />
+        <poll doc:name="fireup Customers synchronization">
+            <fixed-frequency-scheduler frequency="${polling.frequency}" startDelay="${polling.startDelay}"/>
             <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.lastModifiedDate]"/>
-                <netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,companyName,defaultAddress,externalId,fax,firstName,internalId,lastModifiedDate,lastName,phone,url FROM CUSTOMER WHERE lastModifiedDate &gt; #[new org.mule.el.datetime.DateTime(flowVars.lastQueryDate)]" doc:name="Fetch Customers from Netsuite"/>
-		</poll>
- 		<batch:execute name="syncCustomerToAccountBatch" doc:name="Trigger syncCustomerToAccountBatch execution" />
+            <processor-chain doc:name="query Customers">
+				<logger message="Fetching Netsuite with watermark: #[flowVars.lastQueryDate]" level="INFO" doc:name="Log 'Fetching Netsuite with watermark...'"/>
+				<netsuite:query-records config-ref="Netsuite" query="dsql:SELECT accountNumber,companyName,defaultAddress,externalId,fax,firstName,internalId,lastModifiedDate,lastName,phone,url FROM CUSTOMER WHERE lastModifiedDate &gt; #[new org.mule.el.datetime.DateTime(flowVars.lastQueryDate)]" doc:name="Fetch Customers from Netsuite"/>
+        	</processor-chain>
+        </poll>
+        <logger message="Flowvars-lastquery date: #[flowVars.lastQueryDate]" level="INFO" doc:name="Logger"/>
+
+ 		<batch:execute name="syncCustomersToAccountsBatch" doc:name="Trigger syncCustomersToAccountsBatch execution" />
 		<exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Catch Exception and call defaultChoiceExceptionStrategy"/>
 	</flow>
 

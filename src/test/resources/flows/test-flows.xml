@@ -1,55 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
-	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:spring="http://www.springframework.org/schema/beans" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" 
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.1"
+	version="EE-3.7.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd">
 
-    
-
-	<sfdc:config name="TestSalesforceA" username="${test.sfdc.a.username}"
-		password="${test.sfdc.a.password}" securityToken="${test.sfdc.a.securityToken}"
-		url="${test.sfdc.a.url}" doc:name="Salesforce"
-		doc:description="One of your SalesForce instances, order does not matter.">
-		<sfdc:connection-pooling-profile
-			initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW" />
-	</sfdc:config>
-
-	<sfdc:config name="TestSalesforceB" username="${test.sfdc.b.username}"
-		password="${test.sfdc.b.password}" securityToken="${test.sfdc.b.securityToken}"
-		url="${test.sfdc.b.url}" doc:name="Salesforce"
-		doc:description="Your other SalesForce instances, order does not matter.">
-		<sfdc:connection-pooling-profile
-			initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW" />
-	</sfdc:config>
-    <sub-flow name="createAccountInAFlow" >
-        <sfdc:create config-ref="TestSalesforceA" type="Account" doc:name="Create account in A">
+    <sub-flow name="createAccountInSalesforceFlow" >
+        <sfdc:create config-ref="Salesforce" type="Account" doc:name="Salesforce">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:create>
         <logger level="INFO" message="Create Accounts in A result: #[payload]" doc:name="Logger"/>
     </sub-flow>
-    <sub-flow name="createAccountInBFlow" >
-        <sfdc:create config-ref="TestSalesforceB" type="Account" doc:name="Create account in B">
-            <sfdc:objects ref="#[payload]"/>
-        </sfdc:create>
-        <logger level="INFO" message="Create Accounts in B result: #[payload]" doc:name="Logger"/>
+    <sub-flow name="createCustomerInNetsuiteFlow">
+        <netsuite:add-record config-ref="Netsuite" recordType="CUSTOMER" doc:name="NetSuite">
+            <netsuite:attributes ref="#[payload]"/>
+        </netsuite:add-record>
+        <logger message="Create Customer in Netsuite result: #[payload]" level="INFO" doc:name="Logger"/>
     </sub-flow>
 
-    <sub-flow name="queryAccountFromBFlow" >
-        <sfdc:query-single config-ref="TestSalesforceB" query="SELECT Name, Description, Id FROM Account WHERE Name = '#[payload['Name']]'" doc:name="Salesforce"/>
+    <sub-flow name="queryAccountFromSalesforceFlow" >
+        <sfdc:query-single config-ref="Salesforce" query="SELECT Name, Phone, Fax, Id FROM Account WHERE Name = '#[payload]'" doc:name="Salesforce"/>
+
         <logger level="INFO" message="Retrieve Accounts result: #[payload]" doc:name="Logger"/>
     </sub-flow>
 
-    <sub-flow name="deleteAccountFromBFlow" >
-        <sfdc:delete config-ref="TestSalesforceB" doc:name="Salesforce">
+    <sub-flow name="deleteAccountFromSalesforceFlow" >
+        <sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
             <sfdc:ids ref="#[payload]"/>
         </sfdc:delete>
         <logger level="INFO" message="Remove Accounts from B result: #[payload]" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="queryCustomerFromNetsuiteFlow">
+        <netsuite:get-record config-ref="Netsuite"  doc:name="Netsuite">
+            <netsuite:record-ref externalId="#[payload['Id']]" type="CUSTOMER"/>
+        </netsuite:get-record>
+        <logger message="Retrieve Customers result: #[payload]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="deleteCustomerFromNetsuiteFlow">
+        <netsuite:delete-record config-ref="Netsuite" doc:name="Netsuite">
+            <netsuite:record-ref internalId="#[payload]" type="CUSTOMER"/>
+        </netsuite:delete-record>
+
+        <logger message="Remove Customers from Netsuite result: #[payload]" level="INFO" doc:name="Logger"/>
     </sub-flow>
 
 </mule>
