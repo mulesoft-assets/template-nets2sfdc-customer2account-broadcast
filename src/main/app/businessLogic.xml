@@ -20,25 +20,26 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     
     <batch:job name="syncCustomersToAccountsBatch" max-failed-records="1">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
+        <batch:input>
+            <dw:transform-message doc:name="Transform Customers to Accounts">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map {
+	AccountNumber : $.accountNumber,
+	Fax : $.fax,
+	Phone : $.phone,
+	// the Customer name in Netsuite could be represented as companyName or as individual with firstName and LastName
+	Name : $.companyName when ($.firstName == null) otherwise 
+		   ($.firstName ++ " " ++ $.lastName),
+	Website : $.url	
+}]]></dw:set-payload>
+            </dw:transform-message>
+        </batch:input>
         <batch:process-records>
             <batch:step name="forEachCustomerInNetsuiteGetAccountFromSalesforceStep">
                 <logger message="Customer from Netsuite: #[payload]" level="INFO" doc:name="Log customer from Netsuite"/>
 
-				<dw:transform-message doc:name="Transform Customer to Account">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{
-	AccountNumber : payload.accountNumber,
-	Fax : payload.fax,
-	Phone : payload.phone,
-	// the Customer name in Netsuite could be represented as companyName or as individual with firstName and LastName
-	Name : payload.companyName when (payload.companyName != null) otherwise 
-		   payload.firstName ++ " " ++ payload.lastName,
-	Website : payload.url
-	
-}]]></dw:set-payload>
-                </dw:transform-message>
                 <enricher doc:name="store account Id to the payload['Id']" source="#[payload == null ? null : payload.Id]" target="#[payload['Id']]">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id, Name, LastModifiedDate FROM Account WHERE (Name = '#[payload['Name']]')" doc:name="Get Account from Salesforce"/>
 

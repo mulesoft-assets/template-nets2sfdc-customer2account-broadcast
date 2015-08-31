@@ -84,8 +84,8 @@ For instance if 10 records are fetched from origin instance, then 11 api calls w
 		<![CDATA[
 Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for Netsuite creations/updates. The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 
-1. During the Input stage the Anypoint Template will get the Customers polled from the Netsuite instance which matched the filter criteria.
-2. During the Process stage, for each Customer from Netsuite instance the data are adapted for creating/updating the Account in Salesforce and call the upsert operation in Salesforce system.
+1. During the Input stage the Anypoint Template will get the Customers polled from the Netsuite instance which matched the filter criteria and for each Customer from Netsuite instance the data are adapted for upserting the Account in Salesforce.
+2. During the Process stage  and call the upsert operation in Salesforce system.
 3. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
 ]]>
 		</section>
