@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:spring="http://www.springframework.org/schema/beans" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" 
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	version="EE-3.7.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd">
+
+    <sub-flow name="createAccountInSalesforceFlow" >
+        <sfdc:create config-ref="Salesforce" type="Account" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:create>
+        <logger level="INFO" message="Create Accounts in A result: #[payload]" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="createCustomerInNetsuiteFlow">
+        <netsuite:add-record config-ref="Netsuite" recordType="CUSTOMER" doc:name="NetSuite">
+            <netsuite:attributes ref="#[payload]"/>
+        </netsuite:add-record>
+        <logger message="Create Customer in Netsuite result: #[payload]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+
+    <sub-flow name="queryAccountFromSalesforceFlow" >
+        <sfdc:query-single config-ref="Salesforce" query="SELECT Name, Phone, Fax, Id FROM Account WHERE Name = '#[payload]'" doc:name="Salesforce"/>
+
+        <logger level="INFO" message="Retrieve Accounts result: #[payload]" doc:name="Logger"/>
+    </sub-flow>
+
+    <sub-flow name="deleteAccountFromSalesforceFlow" >
+        <sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
+            <sfdc:ids ref="#[payload]"/>
+        </sfdc:delete>
+        <logger level="INFO" message="Remove Accounts from B result: #[payload]" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="queryCustomerFromNetsuiteFlow">
+        <netsuite:get-record config-ref="Netsuite"  doc:name="Netsuite">
+            <netsuite:record-ref externalId="#[payload['Id']]" type="CUSTOMER"/>
+        </netsuite:get-record>
+        <logger message="Retrieve Customers result: #[payload]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="deleteCustomerFromNetsuiteFlow">
+        <netsuite:delete-record config-ref="Netsuite" doc:name="Netsuite">
+            <netsuite:record-ref internalId="#[payload]" type="CUSTOMER"/>
+        </netsuite:delete-record>
+
+        <logger message="Remove Customers from Netsuite result: #[payload]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+
+</mule>

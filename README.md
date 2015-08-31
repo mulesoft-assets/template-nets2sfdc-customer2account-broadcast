@@ -1,10 +1,11 @@
 
-# Anypoint Template: Salesforce to Salesforce Account bidirectional sync
+# Anypoint Template: Netsuite to Salesforce Account to Customer Broadcast
 
 + [License Agreement](#licenseagreement)
 + [Use Case](#usecase)
 + [Considerations](#considerations)
 	* [Salesforce Considerations](#salesforceconsiderations)
+	* [Netsuite Considerations](#netsuiteconsiderations)
 + [Run it!](#runit)
 	* [Running on premise](#runonopremise)
 	* [Running on Studio](#runonstudio)
@@ -25,35 +26,20 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin, I want to have my accounts synchronized between two different Salesforce organizations
+This Anypoint Template should serve as a foundation for setting an online sync of Customers in Netsuite instance to Accounts from Salesforce instance. Every time there is a new Customer or a change in an already existing one, the integration will poll for changes in Netsuite source instance and it will be responsible for creating or updating the Account in Salesforce target instance.
 
-**Template overview** 
+Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-Let's say we want to keep Salesforce instance *A* synchronized with Salesforce instance *B*. Then, the integration behavior can be summarized just with the following steps:
-
-1. Ask Salesforce *A*:
-> *Which changes have there been since the last time I got in touch with you?*
-
-2. For each of the updates fetched in the previous step (1.), ask Salesforce *B*:
-> *Does the update received from A should be applied?*
-
-3. If Salesforce answer for the previous question (2.) is *Yes*, then *upsert* (create or update depending each particular case) B with the belonging change
-
-4. Repeat previous steps (1. to 3.) the other way around (using *B* as source instance and *A* as the target one)
-
- Repeat *ad infinitum*:
-
-5. Ask Salesforce *A*:
-> *Which changes have there been since the question I've made in the step 1.?*
-
-And so on...
-  
-  
-The question for recent changes since a certain moment in nothing but a [poll inbound][1] with a [watermark][2] defined.
+As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+The batch job is divided in Input, Process and On Complete stages.
+The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Netsuite updates/creations matching a filter criteria and executing the batch job.
+During the Process stage, for each Customer from Netsuite instance, we try to find already created Account in Salesforce instance according to Account's name.
+The data are adapted for upserting the Account in Salesforce and call the upsert operation in Salesforce system.
+Finally, during the On Complete stage the Anypoint Template will log output statistics data into the console.
 
 # Considerations <a name="considerations"/>
 
-To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both, that must be made in order for all to run smoothly. **Failling to do so could lead to unexpected behavior of the template.**
+To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. **Failling to do so could lead to unexpected behavior of the template.**
 
 
 
@@ -77,23 +63,6 @@ In order to have this template working as expected, you should be aware of your 
 [1]: https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US
 [2]: https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US
 
-### As source of data
-
-If the user configured in the template for the source system does not have at least *read only* permissions for the fields that are fetched, then a *InvalidFieldFault* API fault will show up.
-
-```
-java.lang.RuntimeException: [InvalidFieldFault [ApiQueryFault [ApiFault  exceptionCode='INVALID_FIELD'
-exceptionMessage='
-Account.Phone, Account.Rating, Account.RecordTypeId, Account.ShippingCity
-^
-ERROR at Row:1:Column:486
-No such column 'RecordTypeId' on entity 'Account'. If you are attempting to use a custom field, be sure to append the '__c' after the custom field name. Please reference your WSDL or the describe call for the appropriate names.'
-]
-row='1'
-column='486'
-]
-]
-```
 
 ### As destination of data
 
@@ -102,16 +71,23 @@ There are no particular considerations for this Anypoint Template regarding Sale
 
 
 
+## Netsuite Considerations <a name="netsuiteconsiderations"/>
+
+### As source of data
+
+There are no particular considerations for this Anypoint Template regarding Netsuite as data origin.
 
 
 
 
 # Run it! <a name="runit"/>
-Simple steps to get Salesforce to Salesforce Account bidirectional sync running.
+Simple steps to get Netsuite to Salesforce Account to Customer Broadcast running.
 See below.
 
 ## Running on premise <a name="runonopremise"/>
-In this section we detail the way you should run your Anypoint Template on your computer.
+In this section we detail the way you have to run you Anypoint Temple on you computer.
+
+Once your app is all set and started, there is no need to do anything else. The application will poll Accounts in Salesforce to know if there are any newly created or updated objects and synchronice them.
 
 
 ### Where to Download Mule Studio and Mule ESB
@@ -147,7 +123,9 @@ Complete all properties in one of the property files, for example in [mule.prod.
 
 
 ## Running on CloudHub <a name="runoncloudhub"/>
-While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**.
+While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**. 
+
+Once your app is all set and started, there is no need to do anything else. Every time a Customer is created or modified, it will be automatically synchronised to Account in Salesforce Org B as long as it has a Name.
 
 
 ### Deploying your Anypoint Template on CloudHub <a name="deployingyouranypointtemplateoncloudhub"/>
@@ -158,36 +136,39 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
 **Application configuration**
-+ polling.frequency `10000`  
-This are the miliseconds (also different time units can be used) that will run between two different checks for updates in Salesforce
 
-+ watermark.default.expression `2014-02-25T11:00:00.000Z`  
-This property is an important one, as it configures what should be the start point of the synchronization.The date format accepted in SFDC Query Language is either *YYYY-MM-DDThh:mm:ss+hh:mm* or you can use Constants. [More information about Dates in SFDC](http://www.salesforce.com/us/developer/docs/officetoolkit/Content/sforce_api_calls_soql_select_dateformats.htm)
++ page.size `200`
++ polling.frequency `20000`
++ polling.startDelay `1000`
++ watermark.default.expression `YESTERDAY`
 
-**SalesForce Connector configuration for company A**
-+ sfdc.a.username `jorge.drexler@mail.com`
-+ sfdc.a.password `Noctiluca123`
-+ sfdc.a.securityToken `avsfwCUl7apQs56Xq2AKi3X`
-+ sfdc.a.url `https://login.salesforce.com/services/Soap/u/28.0`
-+ sfdc.a.integration.user.id= `A0ed000BO9T`  
+**Salesforce Connector configuration**
 
-**SalesForce Connector configuration for company B**
-+ sfdc.b.username `mariano.cozzi@mail.com`
-+ sfdc.b.password `LaRanitaDeLaBicicleta456`
-+ sfdc.b.securityToken `ces56arl7apQs56XTddf34X`
-+ sfdc.b.url `https://login.salesforce.com/services/Soap/u/28.0`
-+ sfdc.b.integration.user.id= `B0ed000BO9T`
++ sfdc.username `bob.dylan@orga`
++ sfdc.password `DylanPassword123`
++ sfdc.securityToken `avsfwCUl7apQs56Xq2AKi3X`
++ sfdc.url `https://login.salesforce.com/services/Soap/u/32.0`
+
+**Netsuite Connector configuration**
+
++ nets.email `example@organization.com`
++ nets.password `Passowrd123`
++ nets.account `NetsuiteAccount`
++ nets.roleId `3`
++ nets.customer.subsidiary.internalId `1`
+
+**Note**: the property `nets.customer.subsidiary.internalId` set **subsidiary** for every new Customer in Netsuite instance.
 
 # API Calls <a name="apicalls"/>
-Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. The template calls to the API can be calculated using the formula:
+Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. The Anypoint Template calls to the API can be calculated using the formula:
 
-***1 + X + X / 200***
+***X + X / 200***
 
 Being ***X*** the number of Accounts to be synchronized on each run. 
 
 The division by ***200*** is because, by default, Accounts are gathered in groups of 200 for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
 
-For instance if 10 records are fetched from origin instance, then 12 api calls will be made (1 + 10 + 1).
+For instance if 10 records are fetched from origin instance, then 11 api calls will be made (10 + 1).
 
 
 # Customize It!<a name="customizeit"/>
@@ -210,15 +191,16 @@ In the visual editor they can be found on the *Global Element* tab.
 
 
 ## businessLogic.xml<a name="businesslogicxml"/>
-Functional aspect of the Template is implemented on this XML, directed by one flow responsible of excecuting the logic.
-For the pourpose of this particular Template the *mainFlow* just excecutes a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing). which handles all the logic of it.
-This flow has Exception Strategy that basically consists on invoking the *defaultChoiseExceptionStrategy* defined in *errorHandling.xml* file.
+Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for Netsuite creations/updates. The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
+
+1. During the Input stage the Anypoint Template will get the Customers polled from the Netsuite instance which matched the filter criteria.
+2. During the Process stage, for each Customer from Netsuite instance the data are adapted for creating/updating the Account in Salesforce and call the upsert operation in Salesforce system.
+3. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
 
 
 
 ## endpoints.xml<a name="endpointsxml"/>
-This is the file where you will found the inbound and outbound sides of your integration app.
-It is intented to define the application API.
+This file contains the Poll endpoint that will periodically query Netsuite for updated/created Customers that meet the defined criteria in the query, and then executing the batch job process, where the data serve as input.
 
 
 
