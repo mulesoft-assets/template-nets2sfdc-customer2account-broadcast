@@ -4,7 +4,7 @@
 	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	version="EE-3.7.1"
+	
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -35,12 +35,6 @@ http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule
             <sfdc:ids ref="#[payload]"/>
         </sfdc:delete>
         <logger level="INFO" message="Remove Accounts from B result: #[payload]" doc:name="Logger"/>
-    </sub-flow>
-    <sub-flow name="queryCustomerFromNetsuiteFlow">
-        <netsuite:get-record config-ref="Netsuite"  doc:name="Netsuite">
-            <netsuite:record-ref externalId="#[payload['Id']]" type="CUSTOMER"/>
-        </netsuite:get-record>
-        <logger message="Retrieve Customers result: #[payload]" level="INFO" doc:name="Logger"/>
     </sub-flow>
     <sub-flow name="deleteCustomerFromNetsuiteFlow">
         <netsuite:delete-record config-ref="Netsuite" doc:name="Netsuite">

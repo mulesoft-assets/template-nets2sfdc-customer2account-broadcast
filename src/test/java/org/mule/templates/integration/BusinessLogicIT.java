@@ -48,7 +48,6 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	private SubflowInterceptingChainLifecycleWrapper createCustomerInNetsuiteFlow;
 	private SubflowInterceptingChainLifecycleWrapper queryAccountFromSalesforceFlow;
 	private SubflowInterceptingChainLifecycleWrapper deleteAccountFromSalesforceFlow;
-	private SubflowInterceptingChainLifecycleWrapper queryCustomerFromNetsuiteFlow;
 	private SubflowInterceptingChainLifecycleWrapper deleteCustomerFromNetsuiteFlow;
 	
 	@Before
@@ -77,10 +76,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		
 		deleteAccountFromSalesforceFlow = getSubFlow("deleteAccountFromSalesforceFlow");
 		deleteAccountFromSalesforceFlow.initialise();
-		
-		queryCustomerFromNetsuiteFlow = getSubFlow("queryCustomerFromNetsuiteFlow");
-		queryCustomerFromNetsuiteFlow.initialise();
-		
+				
 		deleteCustomerFromNetsuiteFlow = getSubFlow("deleteCustomerFromNetsuiteFlow");
 		deleteCustomerFromNetsuiteFlow.initialise();
 		
