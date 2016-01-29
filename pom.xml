@@ -8,7 +8,7 @@
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>template-nets2sfdc-account-broadcast</artifactId>
+	<artifactId>template-nets2sfdc-customer2account-broadcast</artifactId>
 	<packaging>mule</packaging>
 	<version>1.2.2-SNAPSHOT</version>
 	<name>template-nets2sfdc-customer2account-broadcast Mule Anypoint Template Project</name>
