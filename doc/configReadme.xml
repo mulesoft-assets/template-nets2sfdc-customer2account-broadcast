@@ -45,7 +45,6 @@ Once your app is all set and started, there is no need to do anything else. Ever
 		<![CDATA[
 **Application configuration**
 
-+ page.size `200`
 + polling.frequency `20000`
 + polling.startDelay `1000`
 + watermark.default.expression `YESTERDAY`

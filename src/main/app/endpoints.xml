@@ -41,7 +41,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 } as :object {class: "com.netsuite.webservices.lists.relationships.CustomerSearch"}
 ]]></dw:set-payload>
                 </dw:transform-message>
-                <netsuite:search config-ref="Netsuite" searchRecord="CUSTOMER" doc:name="NetSuite"/>
+                <netsuite:search config-ref="Netsuite" searchRecord="CUSTOMER" doc:name="Fetch customers from NetSuite"/>
         	</processor-chain>
         </poll>
 
