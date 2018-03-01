@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd">
+
+	<flow name="schedulerFlow" doc:id="8d05935b-1864-41a2-93bb-2b19ea2a657e">
+		<scheduler doc:name="Scheduler" doc:id="58b7c776-fbee-4753-9bea-f6cc3e037efd">
+			<scheduling-strategy>
+				<fixed-frequency frequency="${scheduler.frequency}"
+					startDelay="${scheduler.start.delay}" />
+			</scheduling-strategy>
+		</scheduler>
+		<flow-ref doc:name="netsQueryFlow" doc:id="ada07859-8839-4751-9623-68a08d31a472"
+			name="netsQueryFlow" />
+		<flow-ref name="businessLogicFlow" doc:name="businessLogicFlow"
+			doc:id="e16bf02c-b833-47de-afd5-2329ce1fab2b" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error Propagate" doc:id="488b507d-e26c-4c56-8759-8bb4f6645d71"
+				type="ANY">
+				<flow-ref doc:name="errorHandlingFlow" doc:id="afdaf73c-0137-4d60-84f6-5c41234771a3"
+					name="errorHandlingFlow" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="netsQueryFlow">
+		<os:retrieve key="watermark" objectStore="watermarkStore"
+			target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
+			<os:default-value><![CDATA[${watermark.default.expression}]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Transform Message"
+			doc:id="faf51ac6-93fb-4d13-8634-ee194c534b2e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	basic: {
+		lastModifiedDate: {
+			operator: "AFTER",
+			searchValue: vars.lastQueryTimestamp as LocalDateTime {class: "java.time.LocalDateTime"}
+		}
+	}
+} as Object {class: "org.mule.module.netsuite.extension.api.CustomerSearch"}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<netsuite:search pageSize="10"
+			doc:name="Get Customers from Netsuite" doc:id="0da0489d-d7db-4091-b4c1-1f2c66118089"
+			key="CUSTOMER" config-ref="NetSuite_Config" />
+		<os:store key="watermark" failOnNullValue="false"
+			objectStore="watermarkStore" doc:name="Store lastQueryTimestamp">
+			<os:value><![CDATA[#[max(payload map $.lastModifiedDate)]]]></os:value>
+		</os:store>
+	</flow>
+</mule>
