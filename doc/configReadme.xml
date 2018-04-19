@@ -10,11 +10,11 @@ This Anypoint Template should serve as a foundation for setting an online sync o
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 
 The batch job is divided in *Process* and *On Complete* stages.
 
-The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Netsuite updates/creations matching a filter criteria and executing the batch job.
+The integration is triggered by a scheduler defined in the flow that is going to trigger the application, querying newest Netsuite updates/creations matching a filter criteria and executing the batch job.
 
 During the *Process* stage, for each Customer from Netsuite instance, we try to find already created Account in Salesforce instance according to Account's name.
 The data are adapted for upserting the Account in Salesforce and call the upsert operation in Salesforce system.
@@ -77,7 +77,7 @@ For instance if 10 records are fetched from origin instance, then 11 api calls w
 		<section id="default_business_logic_xml">
 		<![CDATA[
 Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for Netsuite creations/updates.
-For the purpose of this particular Anypoint Template the *mainFlow* just executes the Batch Job which handles all the logic of it.
+For the purpose of this particular Template the *mainFlow* uses a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing), which handles all the logic of it.
 
 The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 1. Firstly the Anypoint Template will get the Customers polled from the Netsuite instance which matched the filter criteria and for each Customer from Netsuite instance the data are adapted for upserting the Account in Salesforce.
@@ -87,7 +87,7 @@ The several message processors constitute four high level actions that fully imp
 		</section>
 		<section id="default_endpoints_xml">
 		<![CDATA[
-This file contains the Poll endpoint that will periodically query Netsuite for updated/created Customers that meet the defined criteria in the query, and then executing the batch job process, where the data serve as input.
+This file contains the Scheduler endpoint that will periodically query Netsuite for updated/created Customers that meet the defined criteria in the query, and then executing the batch job process, where the data serve as input.
 ]]>
 		</section>
 	</sections>

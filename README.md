@@ -30,11 +30,11 @@ This Anypoint Template should serve as a foundation for setting an online sync o
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 
 The batch job is divided in *Process* and *On Complete* stages.
 
-The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Netsuite updates/creations matching a filter criteria and executing the batch job.
+The integration is triggered by a scheduler defined in the flow that is going to trigger the application, querying newest Netsuite updates/creations matching a filter criteria and executing the batch job.
 
 During the *Process* stage, for each Customer from Netsuite instance, we try to find already created Account in Salesforce instance according to Account's name.
 The data are adapted for upserting the Account in Salesforce and call the upsert operation in Salesforce system.
@@ -43,7 +43,7 @@ Finally, during the *On Complete* stage the Anypoint Template will log output st
 
 # Considerations <a name="considerations"/>
 
-To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly.
+To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. 
 **Failing to do so could lead to unexpected behavior of the template.**
 
 
@@ -102,7 +102,7 @@ First thing to know if you are a newcomer to Mule is where to get the tools.
 
 
 ### Importing an Anypoint Template into Studio
-Mule Studio offers several ways to import a project into the workspace, for instance:
+Mule Studio offers several ways to import a project into the workspace, for instance: 
 
 + Anypoint Studio Project from File System
 + Packaged mule application (.jar)
@@ -115,17 +115,17 @@ Once you have imported you Anypoint Template into Anypoint Studio you need to fo
 
 + Locate the properties file `mule.dev.properties`, in src/main/resources
 + Complete all the properties required as per the examples in the section [Properties to be configured](#propertiestobeconfigured)
-+ Once that is done, right click on you Anypoint Template project folder
++ Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
 
 
 ### Running on Mule ESB stand alone <a name="runonmuleesbstandalone"/>
-Complete all properties in one of the property files, for example in [mule.prod.properties](../master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`.
+Complete all properties in one of the property files, for example in [mule.prod.properties] (../master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
 
 
 ## Running on CloudHub <a name="runoncloudhub"/>
-While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**.
+While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**. 
 
 Once your app is all set and started, there is no need to do anything else. Every time a Customer is created or modified, it will be automatically synchronized to Account in Salesforce as long as it has a Name.
 
@@ -167,9 +167,9 @@ Salesforce imposes limits on the number of API Calls that can be made. Therefore
 
 ***X + X / ${page.size}***
 
-Being ***X*** the number of Accounts to be synchronized on each run.
+Being ***X*** the number of Accounts to be synchronized on each run. 
 
-The division by ***${page.size}*** is because, by default, Accounts are gathered in groups of ${page.size} for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.
+The division by ***${page.size}*** is because, by default, Accounts are gathered in groups of ${page.size} for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
 
 For instance if 10 records are fetched from origin instance, then 11 api calls will be made (10 + 1).
 
@@ -195,7 +195,7 @@ In the visual editor they can be found on the *Global Element* tab.
 
 ## businessLogic.xml<a name="businesslogicxml"/>
 Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for Netsuite creations/updates.
-For the purpose of this particular Anypoint Template the *mainFlow* just executes the Batch Job which handles all the logic of it.
+For the purpose of this particular Template the *mainFlow* uses a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing), which handles all the logic of it.
 
 The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 1. Firstly the Anypoint Template will get the Customers polled from the Netsuite instance which matched the filter criteria and for each Customer from Netsuite instance the data are adapted for upserting the Account in Salesforce.
@@ -205,10 +205,13 @@ The several message processors constitute four high level actions that fully imp
 
 
 ## endpoints.xml<a name="endpointsxml"/>
-This file contains the Poll endpoint that will periodically query Netsuite for updated/created Customers that meet the defined criteria in the query, and then executing the batch job process, where the data serve as input.
+This file contains the Scheduler endpoint that will periodically query Netsuite for updated/created Customers that meet the defined criteria in the query, and then executing the batch job process, where the data serve as input.
 
 
 
 ## errorHandling.xml<a name="errorhandlingxml"/>
-This is the right place to handle how your integration will react depending on the different exceptions.
+This is the right place to handle how your integration will react depending on the different exceptions. 
 This file holds a [Error Handling](http://www.mulesoft.org/documentation/display/current/Error+Handling) that is referenced by the main flow in the business logic.
+
+
+
