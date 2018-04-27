@@ -25,12 +25,14 @@ http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule
 			<ee:variables >
 				<ee:set-variable variableName="testCustomer1" ><![CDATA[%dw 2.0
 output application/java
+var lastName = "testLastName" ++ (uuid() splitBy("-"))[0]
+var firstName = "testFirstName" ++ (uuid() splitBy("-"))[0]
 ---
-{
-	lastName: "testLastName" ++ (uuid() splitBy("-"))[0],
-	firstName: "testFirstName" ++ (uuid() splitBy("-"))[0],
+{	
+	lastName: lastName,
+	firstName: firstName,
 	isPerson: true,
-	companyName: "TestLastName1 TestFirstName1",
+	companyName: lastName ++ " " ++ firstName,
 	externalId : "231325",
 	phone: "23523523",
 	subsidiary: {
