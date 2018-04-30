@@ -44,6 +44,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-sockets-connector</artifactId>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule-salesforce-connector</artifactId>
 			<classifier>mule-plugin</classifier>
@@ -56,7 +61,6 @@
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule-netsuite-connector</artifactId>
-			<version>${netsuite.connector.version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
