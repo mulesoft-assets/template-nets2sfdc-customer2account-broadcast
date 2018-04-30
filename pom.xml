@@ -11,7 +11,7 @@
 
 	<artifactId>template-nets2sfdc-customer2account-broadcast</artifactId>
 	<packaging>mule-application</packaging>
-
+    <version>2.1.0-SNAPSHOT</version>
 	<name>template-nets2sfdc-customer2account-broadcast</name>
 
 	<build>
