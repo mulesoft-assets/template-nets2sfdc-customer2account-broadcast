@@ -35,7 +35,7 @@ http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule
 			target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
 			<os:default-value><![CDATA[${watermark.default.expression}]]></os:default-value>
 		</os:retrieve>
-		<ee:transform doc:name="Transform Message"
+		<ee:transform doc:name="Prepare Request"
 			doc:id="faf51ac6-93fb-4d13-8634-ee194c534b2e">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
