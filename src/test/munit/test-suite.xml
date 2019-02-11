@@ -37,7 +37,7 @@ var firstName = "testFirstName" ++ (uuid() splitBy("-"))[0]
 	phone: "23523523",
 	subsidiary: {
 		"type": "SUBSIDIARY",
-		internalId: p('netsuite.customer.subsidiary.internalId')
+		internalId: p('nets.customer.subsidiary.internalId')
 	} as Object {class: "org.mule.module.netsuite.extension.api.RecordRef"}
 }]]></ee:set-variable>
 				<ee:set-variable variableName="testCustomer2" ><![CDATA[%dw 2.0
@@ -54,7 +54,7 @@ var firstName = "testFirstName" ++ (uuid() splitBy("-"))[0]
 	phone: "23523523",
 	subsidiary: {
 		"type": "SUBSIDIARY",
-		internalId: p('netsuite.customer.subsidiary.internalId')
+		internalId: p('nets.customer.subsidiary.internalId')
 	} as Object {class: "org.mule.module.netsuite.extension.api.RecordRef"}
 }]]></ee:set-variable>
 			</ee:variables>
@@ -62,7 +62,6 @@ var firstName = "testFirstName" ++ (uuid() splitBy("-"))[0]
 		<netsuite:upsert-list recordType="CUSTOMER" doc:name="Upsert list" doc:id="01ad3299-8e69-4920-8c75-298e8311f85e" config-ref="NetSuite_Config" target="netsuiteCustomers">
 			<netsuite:record-maps ><![CDATA[#[[vars.testCustomer1, vars.testCustomer2]]]]></netsuite:record-maps>
 		</netsuite:upsert-list>
-		<logger level="INFO" doc:name="Logger" doc:id="df67f75f-66df-4c63-8682-25db5f7eeb05" message="#[output application/json --- payload]"/>
 		<ee:transform doc:name="Prepare testing account for SFDC" doc:id="f7476bdd-7562-44bd-a891-a5fb51f29f81" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -82,15 +81,24 @@ output application/java
 			<scripting:execute doc:name="Sleep for 5s before we start tests" doc:id="68f96218-bb52-4fbc-92c8-1b014988e3e2" engine="groovy">
 				<scripting:code >sleep(5000)</scripting:code>
 			</scripting:execute>
-			<flow-ref doc:name="schedulerFlow" doc:id="5ab4bfcb-8d3f-4c20-b8a5-cd1d1a6a9165" name="schedulerFlow"/>
+			<flow-ref doc:name="Call Nets Query Flow" doc:id="5ab4bfcb-8d3f-4c20-b8a5-cd1d1a6a9165" name="netsQueryFlow"/>
+			<ee:transform doc:name="Filter test records" doc:id="1518453b-1e0d-4cb2-b86f-873b9f370012" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload filter ($.lastName == vars.testCustomer1.lastName or $.lastName == vars.testCustomer2.lastName) ]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Call Business Logic" doc:id="60b8cbac-2291-49e6-9940-db0c432cacd1" name="businessLogicFlow"/>
 			<scripting:execute doc:name="Sleep for 30s until the processing is completed" doc:id="b09fe305-3000-4571-b824-8b555395ccb7" engine="groovy">
 				<scripting:code >sleep(30000)</scripting:code>
-			</scripting:execute>
- 			<flow-ref doc:name="insertTest" doc:id="646a758d-9c2b-4aa8-b747-68fef943494e" name="insertTest"/>
-			<flow-ref doc:name="updateTest" doc:id="bb921782-20b4-41df-8aeb-1acb94826e02" name="updateTest"/> 
+			</scripting:execute> 
 		</munit:execution>
 		<munit:validation >
-			<munit-tools:verify-call doc:name="Verify call" doc:id="08066a60-3479-447a-9432-19f188122449" processor="salesforce:upsert-bulk" times="1"/>
+			<flow-ref doc:name="insertTest" doc:id="646a758d-9c2b-4aa8-b747-68fef943494e" name="insertTest" />
+			<flow-ref doc:name="updateTest" doc:id="bb921782-20b4-41df-8aeb-1acb94826e02" name="updateTest" />
+			<munit-tools:verify-call doc:name="Verify Sfdc Upsert Bulk call" doc:id="08066a60-3479-447a-9432-19f188122449" processor="salesforce:upsert-bulk" times="1"/>
 		</munit:validation>
 	</munit:test>
 	<sub-flow name="insertTest" doc:id="bb629d7e-cfcf-4909-9671-b9d75fbbcdc7" >
