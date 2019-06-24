@@ -110,7 +110,7 @@ payload filter ($.lastName == vars.testCustomer1.lastName or $.lastName == vars.
 	"name" : vars.testCustomer1.firstName ++ " " ++ vars.testCustomer1.lastName
 }]]]></salesforce:parameters>
 		</salesforce:query>
-		<munit-tools:assert-that doc:name="Assert that we found created Account" doc:id="a8f4453a-10c6-4508-8ecf-64cc08e6129c" expression="#[sizeOf(payload)]" is='#[MunitTools::equalTo(1)]' />
+		<munit-tools:assert-that doc:name="Assert that we found created Account" doc:id="a8f4453a-10c6-4508-8ecf-64cc08e6129c" expression="#[sizeOf(payload)]" is='#[MunitTools::equalTo(1)]' message="Assert that we found created Account has failed" />
 		<salesforce:delete doc:name="Delete created account in SFDC" doc:id="bb885dfe-2825-4a78-928b-7e30c9118c01" config-ref="Salesforce_Sfdc_config">
 			<salesforce:delete-ids><![CDATA[#[[payload[0].Id]]]]></salesforce:delete-ids>
 		</salesforce:delete>
@@ -124,7 +124,7 @@ payload filter ($.lastName == vars.testCustomer1.lastName or $.lastName == vars.
 	"name" : vars.testCustomer2.firstName ++ " " ++ vars.testCustomer2.lastName
 }]]]></salesforce:parameters>
 		</salesforce:query>
-		<munit-tools:assert-that doc:name="Assert that phone has been updated" doc:id="5be8506d-fc9c-489d-90dc-fa140acb956f" expression="#[payload[0].Phone]" is='#[MunitTools::equalTo(vars.testCustomer2.phone)]' />
+		<munit-tools:assert-that doc:name="Assert that phone has been updated" doc:id="5be8506d-fc9c-489d-90dc-fa140acb956f" expression="#[payload[0].Phone]" is='#[MunitTools::equalTo(vars.testCustomer2.phone)]' message="Assert that phone has been updated has failed"/>
 	</sub-flow>
 	<munit:after-test name="test-suiteAfter_Test" description="After tests actions" doc:id="5b85bb9e-67e6-47f7-8f71-53a39f147fc8" >
 	<salesforce:delete doc:name="Delete updated account in SFDC" doc:id="3c7258cd-495f-42d9-a39b-8d816b30e379" config-ref="Salesforce_Sfdc_config">
